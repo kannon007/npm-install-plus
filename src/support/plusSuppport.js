@@ -1,58 +1,59 @@
-let saveDir = "/app/package/"
-let config = require(process.cwd()+"/package.json")
-let plus = function () {    
-    saveDir = saveDir+config.name
-    return this;
+let taskConfig = {
+    saveDir: "/app/package/",    
+    packageFile: "",
+    tarName: ""
 }
 
+let config = require(process.cwd() + "/package.json")
+let plus = function () {
+    taskConfig.saveDir = taskConfig.saveDir + config.name+"/";
+    taskConfig.packageFile = taskConfig.saveDir + config.name +".package.json";
+    taskConfig.tarName =  taskConfig.saveDir + config.name +'.tar';
+    return this;
+}
+const fs = require("fs")
+const path = require("path")
+mkdirs =  function (dirname) {
+    if (fs.existsSync(dirname)) {
+      return true;
+    } else {
+      if (mkdirs(path.dirname(dirname))) {
+        fs.mkdirSync(dirname);
+        return true;
+      }
+    }
+}
 
+plus.prototype.check = function () {    
+    mkdirs(taskConfig.saveDir)
+    if (fs.existsSync(taskConfig.packageFile)) {
+        let curcfg = require(taskConfig.packageFile)
 
-plus.prototype.check =  function () {
-    const fs = require("fs")
-    if (fs.existsSync( saveDir+'.tgz')) {
-        let curcfg = require(saveDir+".package.json")
-               
         if (curcfg.dependencies.toString() == config.dependencies.toString()) {
             return true;
-        }else {
+        } else {
             return false;
         }
     } else {
         return false;
     }
-   
+
 }
-plus.prototype.first_install = async function () {
-    console.log("first_install")
-    const { spawn } = require('child_process');
-    
-    let spawnObj = spawn(process.platform === 'win32' ? 'npm.cmd' : "npm",['install']);
-    var iconv = require('iconv-lite');
-    return new Promise(function(r,e){
-        spawnObj.stdout.on("data",(data) => {
-            r(iconv.decode(data,'utf-8'));
-         });
-        
-        spawnObj.stderr.on('err',(err) => {
-            console.log(err);
-        });
-        
-        spawnObj.on('exit',(code) => {
-            console.log(`exit code is ${code}`);
-        });
-    })
- }
+plus.prototype.first_install =  function () {
+    console.log("first_install")    
+    let execSync = require('child_process').execSync
+    execSync("npm install", {stdio: [0,2,2]})    
+}
 plus.prototype.first_package_gzip = async function () {
     const compressing = require('compressing');
     try {
-        await compressing.tar.compressDir('node_modules',
-        saveDir+'.tar');
-       
+        await compressing.tar.compressDir('node_modules',taskConfig.tarName);
+
         // await compressing.gzip.compressFile(saveDir+'.tar',
         // saveDir+'.tgz');     
-        const fsPromises = require('fs').promises;
-        fsPromises.copyFile('package.json', saveDir+'.package.json')  
        
+        fs.copyFileSync('package.json', taskConfig.packageFile)
+
         console.log('first_package_gzip success');
     } catch (err) {
         console.error(err);
@@ -65,9 +66,8 @@ plus.prototype.already_unzip = async function () {
     try {
         // await compressing.gzip.uncompress(saveDir+'.tgz',
         // saveDir+'.tar');
-        await compressing.tar.uncompress(saveDir+'.tar',
-            '');
-      
+        await compressing.tar.uncompress(taskConfig.tarName,'');
+
         console.log('already_unzip success');
     } catch (err) {
         console.error(err);

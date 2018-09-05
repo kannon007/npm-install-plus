@@ -1,11 +1,11 @@
 {
   "name": "npm-install-plus",
-  "version": "1.0.5",
+  "version": "1.0.14",
   "description": "",
   "main": "./src/bin/app.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/indexzero/http-server.git"
+    "url": "git://github.com/wydcn/npm-install-plus.git"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

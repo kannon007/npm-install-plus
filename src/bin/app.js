@@ -5,8 +5,7 @@ async  function app() {
    if (curPlus.check()) {
     await curPlus.already_unzip()  
    }else {
-    let data = await curPlus.first_install()
-    console.log(data)
+    curPlus.first_install()    
     await curPlus.first_package_gzip()
    } 
 }
